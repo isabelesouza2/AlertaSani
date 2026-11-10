@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#176b5b">
+  <meta name="description" content="AlertaSani — registre e visualize ocorrências de saneamento em Três Lagoas.">
+  <title>AlertaSani | Três Lagoas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="AlertaSani - início">
+      <span class="brand-mark">A</span>
+      <span>Alerta<span class="brand-light">Sani</span></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Menu principal">
+      <a href="#inicio" class="nav-link active" data-section="inicio">Início</a>
+      <a href="#mapa" class="nav-link" data-section="mapa">Mapa</a>
+      <a href="#como-funciona" class="nav-link" data-section="como-funciona">Como usar</a>
+    </nav>
+
+    <div class="top-actions">
+      <span id="user-label" class="user-label" hidden></span>
+      <button id="open-login" class="button button-outline" type="button">Entrar</button>
+      <button id="logout-button" class="button button-outline" type="button" hidden>Sair</button>
+      <button id="header-report" class="button button-primary" type="button">Nova ocorrência <span aria-hidden="true">+</span></button>
+      <button id="mobile-menu" class="mobile-menu" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="inicio" class="hero page-section">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> TRÊS LAGOAS · MS</span>
+        <h1>Uma cidade melhor começa com <span>a participação de todos.</span></h1>
+        <p>Encontrou um problema de saneamento? Marque o local no mapa, conte o que aconteceu e ajude a dar visibilidade à situação.</p>
+        <div class="hero-actions">
+          <button id="hero-report" class="button button-primary button-large" type="button">Registrar ocorrência <span aria-hidden="true">↗</span></button>
+          <a href="#mapa" class="button button-soft button-large">Explorar o mapa</a>
+        </div>
+        <div class="hero-note"><span class="note-icon">●</span> Registros demonstrativos do projeto AlertaSani</div>
+      </div>
+
+      <div class="hero-visual" aria-label="Ilustração de mapa com marcador">
+        <div class="map-preview">
+          <div class="map-preview-top">
+            <span class="preview-pill"><span class="live-dot"></span> MAPA DA CIDADE</span>
+            <span class="preview-cross">＋</span>
+          </div>
+          <div class="street street-one"></div>
+          <div class="street street-two"></div>
+          <div class="street street-three"></div>
+          <div class="street street-four"></div>
+          <div class="green-space green-one"></div>
+          <div class="green-space green-two"></div>
+          <div class="map-pin pin-one"><span>!</span></div>
+          <div class="map-pin pin-two"><span>!</span></div>
+          <div class="map-pin pin-three"><span>!</span></div>
+          <div class="map-preview-label"><strong>Três Lagoas</strong><small>Mato Grosso do Sul</small></div>
+        </div>
+        <div class="floating-card">
+          <span class="floating-icon">⌖</span>
+          <div><strong>Seu bairro importa</strong><small>Ajude a registrar o que precisa de atenção.</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="how-section page-section">
+      <div class="section-heading">
+        <span class="eyebrow">SIMPLES DE USAR</span>
+        <h2>Como funciona</h2>
+        <p>Três passos para registrar uma situação no mapa.</p>
+      </div>
+      <div class="steps">
+        <article class="step-card">
+          <span class="step-number">01</span>
+          <div class="step-icon">⌖</div>
+          <h3>Localize</h3>
+          <p>Abra o mapa e clique no ponto aproximado onde encontrou o problema.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">02</span>
+          <div class="step-icon">✎</div>
+          <h3>Descreva</h3>
+          <p>Escolha a categoria e explique brevemente o que está acontecendo.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">03</span>
+          <div class="step-icon">⌕</div>
+          <h3>Acompanhe</h3>
+          <p>Consulte os pontos registrados e veja as informações de cada ocorrência.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="mapa" class="map-section page-section">
+      <div class="map-heading">
+        <div>
+          <span class="eyebrow">VISUALIZAÇÃO DA CIDADE</span>
+          <h2>Mapa de ocorrências</h2>
+          <p>Veja os registros ou selecione um local no mapa para adicionar um ponto.</p>
+        </div>
+        <button id="map-add-button" class="button button-primary" type="button">＋ Adicionar ponto</button>
+      </div>
+
+      <div class="map-toolbar">
+        <div class="map-legend">
+          <span><i class="legend-dot water"></i> Água e esgoto</span>
+          <span><i class="legend-dot waste"></i> Lixo e resíduos</span>
+          <span><i class="legend-dot drainage"></i> Drenagem</span>
+          <span><i class="legend-dot other"></i> Outros</span>
+        </div>
+        <span id="points-count" class="points-count">0 pontos no mapa</span>
+      </div>
+
+      <div class="map-layout">
+        <div class="map-frame">
+          <div id="google-map" role="application" aria-label="Mapa interativo de Três Lagoas"></div>
+          <div id="map-message" class="map-message" hidden></div>
+        </div>
+        <aside class="map-side">
+          <div class="side-title">
+            <div><span class="eyebrow">REGISTROS</span><h3>Pontos recentes</h3></div>
+            <span class="side-count" id="side-count">0</span>
+          </div>
+          <div id="occurrence-list" class="occurrence-list">
+            <div class="empty-list">
+              <span class="empty-symbol">⌖</span>
+              <strong>Nenhum ponto por aqui ainda</strong>
+              <p>Os pontos adicionados ao mapa aparecerão nesta lista.</p>
+            </div>
+          </div>
+          <p class="local-note">Nesta versão de demonstração, os pontos ficam salvos neste navegador.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="callout-section">
+      <div>
+        <span class="eyebrow">FAÇA PARTE</span>
+        <h2>Viu algo que precisa de atenção?</h2>
+        <p>Registre o local e compartilhe as informações com a comunidade.</p>
+      </div>
+      <button id="bottom-report" class="button button-light" type="button">Registrar ocorrência <span aria-hidden="true">↗</span></button>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="brand footer-brand" href="#inicio"><span class="brand-mark">A</span><span>Alerta<span class="brand-light">Sani</span></span></a>
+    <span>Projeto acadêmico · Três Lagoas - MS</span>
+  </footer>
+
+  <!-- Modal de login e cadastro -->
+  <div id="auth-modal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-card auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <button class="modal-close" type="button" data-close-modal aria-label="Fechar">×</button>
+      <div class="modal-brand"><span class="brand-mark">A</span></div>
+      <span class="eyebrow">ÁREA DO USUÁRIO</span>
+      <h2 id="auth-title">Entre na sua conta</h2>
+      <p id="auth-description" class="modal-description">Acesse para registrar e organizar suas ocorrências.</p>
+
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab selected" type="button">Entrar</button>
+        <button id="tab-register" class="auth-tab" type="button">Criar conta</button>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <label for="login-email">E-mail</label>
+        <input id="login-email" type="email" autocomplete="email" placeholder="voce@email.com" required>
+        <label for="login-password">Senha</label>
+        <input id="login-password" type="password" autocomplete="current-password" placeholder="Sua senha" required>
+        <button class="button button-primary button-full" type="submit">Entrar</button>
+      </form>
+
+      <form id="register-form" class="auth-form" hidden>
+        <label for="register-name">Nome</label>
+        <input id="register-name" type="text" autocomplete="name" placeholder="Como podemos te chamar?" required maxlength="70">
+        <label for="register-email">E-mail</label>
+        <input id="register-email" type="email" autocomplete="email" placeholder="voce@email.com" required>
+        <label for="register-password">Criar senha</label>
+        <input id="register-password" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres" required minlength="8">
+        <button class="button button-primary button-full" type="submit">Criar conta</button>
+      </form>
+      <p id="auth-feedback" class="form-feedback" role="status"></p>
+      <p class="security-note">Protótipo escolar: não use uma senha real nem dados pessoais. Esta demonstração não substitui um sistema de autenticação com servidor.</p>
+    </section>
+  </div>
+
+  <!-- Modal para registrar ponto no mapa -->
+  <div id="report-modal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-card report-card" role="dialog" aria-modal="true" aria-labelledby="report-title">
+      <button class="modal-close" type="button" data-close-modal aria-label="Fechar">×</button>
+      <span class="eyebrow">NOVO REGISTRO</span>
+      <h2 id="report-title">Adicionar ocorrência</h2>
+      <p class="modal-description">Clique no mapa para escolher o local. Depois, preencha os detalhes.</p>
+      <div class="selected-location" id="selected-location">Nenhum local selecionado. Clique em um ponto do mapa.</div>
+      <form id="report-form" class="auth-form">
+        <label for="report-category">Tipo de problema</label>
+        <select id="report-category" required>
+          <option value="">Selecione uma categoria</option>
+          <option value="Água e esgoto">Água e esgoto</option>
+          <option value="Lixo e resíduos">Lixo e resíduos</option>
+          <option value="Drenagem">Drenagem</option>
+          <option value="Outros">Outros</option>
+        </select>
+        <label for="report-title-input">Título</label>
+        <input id="report-title-input" type="text" maxlength="70" placeholder="Ex.: Acúmulo de água na rua" required>
+        <label for="report-description">Descrição</label>
+        <textarea id="report-description" rows="3" maxlength="400" placeholder="Conte brevemente o que foi observado..." required></textarea>
+        <button class="button button-primary button-full" type="submit">Salvar ponto no mapa</button>
+      </form>
+      <p class="security-note">Não inclua nomes, telefones, endereços residenciais completos ou outras informações pessoais na descrição.</p>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

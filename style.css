@@ -309,3 +309,26 @@ button { cursor: pointer; }
   .footer { align-items: flex-start; flex-direction: column; }
   .modal-card { padding: 25px 20px; }
 }
+
+
+/* Ilustração principal do AlertaSani */
+.hero-visual {
+  position: relative;
+  min-height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.hero-illustration {
+  display: block;
+  width: 100%;
+  max-width: 650px;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+@media (max-width: 760px) {
+  .hero-visual { min-height: 250px; }
+  .hero-illustration { max-width: 520px; }
+}

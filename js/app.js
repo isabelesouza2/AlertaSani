@@ -350,7 +350,7 @@
           fillOpacity: 1,
           strokeColor: "#ffffff",
           strokeWeight: 2,
-          scale: 8
+          scale: 15
         }
       });
 

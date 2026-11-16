@@ -57,7 +57,13 @@ button { cursor: pointer; }
   border-radius: 11px;
   color: white;
   background: var(--green);
-  font: 800 20px "Manrope", sans-serif;
+  flex-shrink: 0;
+}
+
+.brand-mark svg {
+  width: 23px;
+  height: 23px;
+  display: block;
 }
 .brand-light { font-weight: 600; }
 .main-nav { display: flex; align-items: center; gap: 30px; }

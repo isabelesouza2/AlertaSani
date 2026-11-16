@@ -235,7 +235,8 @@ button { cursor: pointer; }
 .empty-symbol { display: block; margin-bottom: 13px; color: #9db4a7; font-size: 30px; }
 .empty-list strong { display: block; color: var(--green-dark); font-size: 12px; }
 .empty-list p { margin-top: 7px; color: var(--muted); font-size: 10px; line-height: 1.6; }
-.occurrence-item { padding: 14px 0; border-bottom: 1px solid #edf1ee; cursor: pointer; }
+.occurrence-item { display: block; width: 100%; padding: 16px 10px; border: none; border-bottom: 1px solid #edf1ee; background: transparent; text-align: left; cursor: pointer; font-family: inherit;
+}
 .occurrence-item:hover strong { color: var(--green); }
 .occurrence-item strong { display: block; margin-bottom: 5px; color: #344b42; font-size: 11px; }
 .occurrence-item span { color: var(--muted); font-size: 10px; }
@@ -317,7 +318,7 @@ button { cursor: pointer; }
 }
 
 
-/* Ilustração principal do AlertaSani */
+/* Ilustração do AlertaSani */
 .hero-visual {
   position: relative;
   min-height: 350px;

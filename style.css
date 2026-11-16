@@ -329,7 +329,7 @@ button { cursor: pointer; }
 .hero-illustration {
   display: block;
   width: 100%;
-  max-width: 650px;
+  max-width: 480px;
   height: auto;
   object-fit: contain;
   mix-blend-mode: multiply;

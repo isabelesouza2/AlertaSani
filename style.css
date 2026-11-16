@@ -216,10 +216,10 @@ button { cursor: pointer; }
 .map-legend { display: flex; gap: 17px; flex-wrap: wrap; }
 .map-legend span { display: inline-flex; align-items: center; gap: 7px; color: #65766e; font-size: 10px; font-weight: 600; }
 .legend-dot { width: 8px; height: 8px; display: inline-block; border-radius: 50%; }
-.legend-dot.water { background: #d56e54; }
-.legend-dot.waste { background: #d99a3d; }
-.legend-dot.drainage { background: #4d9877; }
-.legend-dot.other { background: #6d83b4; }
+.legend-dot.water { background: #ec2f00; }
+.legend-dot.waste { background: #fd9800; }
+.legend-dot.drainage { background: #06ff93; }
+.legend-dot.other { background: #0044d8; }
 .points-count { color: #71817b; font-size: 11px; }
 .map-layout { max-width: 1250px; margin: auto; display: grid; grid-template-columns: minmax(0, 1fr) 285px; gap: 16px; align-items: stretch; }
 .map-frame { min-height: 540px; position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #e8eee9; }

@@ -322,10 +322,10 @@
 
   function categoryColor(category) {
     return {
-      "Água e esgoto": "#d56e54",
-      "Lixo e resíduos": "#d99a3d",
-      "Drenagem": "#4d9877",
-      "Outros": "#6d83b4"
+      "Água e esgoto": "#f73100ff",
+      "Lixo e resíduos": "#ff9900ff",
+      "Drenagem": "#03c26fff",
+      "Outros": "#003ec4ff"
     }[category] || "#6d83b4";
   }
 

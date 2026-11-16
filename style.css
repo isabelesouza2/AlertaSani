@@ -179,7 +179,7 @@ button { cursor: pointer; }
 }
 .map-pin span { transform: rotate(45deg); font-size: 12px; font-weight: 800; }
 .pin-one { top: 36%; left: 46%; }
-.pin-two { top: 61%; left: 72%; background: #d99a3d; }
+.pin-two { top: 61%; left: 72%; background: #ff9a02; }
 .pin-three { top: 70%; left: 29%; background: #4d9877; }
 .map-preview-label { position: absolute; bottom: 17px; left: 17px; display: flex; flex-direction: column; gap: 2px; color: #3b5d4e; }
 .map-preview-label strong { font: 800 15px "Manrope", sans-serif; }

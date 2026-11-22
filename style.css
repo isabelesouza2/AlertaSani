@@ -16,16 +16,25 @@
   --shadow: 0 16px 45px rgba(28, 67, 54, .09);
 }
 
-html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+html { 
+  scroll-behavior: smooth; 
+  scroll-padding-top: 88px;
+ }
 body {
   min-width: 320px;
   background: var(--background);
   color: var(--ink);
   font-family: "DM Sans", Arial, sans-serif;
 }
-button, input, select, textarea { font: inherit; }
-button, a { -webkit-tap-highlight-color: transparent; }
-button { cursor: pointer; }
+button, input, select, textarea {
+   font: inherit; 
+  }
+button, a { 
+  -webkit-tap-highlight-color: transparent;
+ }
+button {
+   cursor: pointer;
+   }
 
 .topbar {
   height: 78px;
@@ -65,8 +74,14 @@ button { cursor: pointer; }
   height: 23px;
   display: block;
 }
-.brand-light { font-weight: 600; }
-.main-nav { display: flex; align-items: center; gap: 30px; }
+.brand-light { 
+  font-weight: 600; 
+}
+.main-nav { 
+  display: flex; 
+  align-items: center;
+  gap: 30px;
+   }
 .nav-link {
   color: #586a63;
   text-decoration: none;
@@ -74,9 +89,18 @@ button { cursor: pointer; }
   font-weight: 700;
   transition: color .2s;
 }
-.nav-link:hover, .nav-link.active { color: var(--green); }
-.top-actions { display: flex; align-items: center; gap: 10px; }
-.user-label { color: var(--green-dark); font-size: 12px; font-weight: 700; }
+.nav-link:hover, .nav-link.active { 
+  color: var(--green);
+ }
+.top-actions {
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+}
+.user-label {
+   color: var(--green-dark); 
+   font-size: 12px; 
+   font-weight: 700; }
 .button {
   min-height: 42px;
   padding: 0 18px;
@@ -235,7 +259,8 @@ button { cursor: pointer; }
 .empty-symbol { display: block; margin-bottom: 13px; color: #9db4a7; font-size: 30px; }
 .empty-list strong { display: block; color: var(--green-dark); font-size: 12px; }
 .empty-list p { margin-top: 7px; color: var(--muted); font-size: 10px; line-height: 1.6; }
-.occurrence-item { padding: 14px 0; border-bottom: 1px solid #edf1ee; cursor: pointer; }
+.occurrence-item { display: block; width: 100%; padding: 16px 10px; border: none; border-bottom: 1px solid #edf1ee; background: transparent; text-align: left; cursor: pointer; font-family: inherit;
+}
 .occurrence-item:hover strong { color: var(--green); }
 .occurrence-item strong { display: block; margin-bottom: 5px; color: #344b42; font-size: 11px; }
 .occurrence-item span { color: var(--muted); font-size: 10px; }

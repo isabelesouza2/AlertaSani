@@ -102,7 +102,7 @@
     if (!getSession()) {
       wantsToReport = true;
       openAuth("login");
-      showToast("Entre ou crie uma conta de demonstração para registrar um ponto.");
+      showToast("Entre ou crie uma conta para registrar um ponto.");
       return;
     }
     goToSection("mapa");
@@ -154,7 +154,7 @@
     $("#auth-title").textContent = login ? "Entre na sua conta" : "Crie sua conta";
     $("#auth-description").textContent = login
       ? "Acesse para registrar e organizar suas ocorrências."
-      : "Preencha os dados para criar uma conta de demonstração.";
+      : "Preencha os dados para criar uma conta.";
     setAuthFeedback("");
   }
 
@@ -164,7 +164,7 @@
 
   async function hashPassword(password, saltHex) {
     if (!window.crypto?.subtle) {
-      throw new Error("Abra o projeto em localhost ou HTTPS para usar a demonstração de login.");
+      throw new Error("Abra o projeto em localhost ou HTTPS para usar o login.");
     }
     const encoder = new TextEncoder();
     const salt = saltHex
@@ -207,7 +207,7 @@
       updateAuthUI();
       closeModal($("#auth-modal"));
       $("#register-form").reset();
-      showToast("Conta de demonstração criada!");
+      showToast("Conta criada com sucesso!");
       continueReportFlow();
     } catch (error) {
       setAuthFeedback(error.message || "Não foi possível criar a conta.");
@@ -350,7 +350,7 @@
           fillOpacity: 1,
           strokeColor: "#ffffff",
           strokeWeight: 2,
-          scale: 15
+          scale: 13
         }
       });
 

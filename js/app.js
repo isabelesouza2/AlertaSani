@@ -1,10 +1,9 @@
 (() => {
   "use strict";
 
+  const API_URL = "http://localhost:5524";
   const TL_CENTER = { lat: -20.7848, lng: -51.7007 };
-  const STORAGE_POINTS = "alertasani_demo_points_v1";
-  const STORAGE_USERS = "alertasani_demo_users_v1";
-  const STORAGE_SESSION = "alertasani_demo_session_v1";
+  const STORAGE_SESSION = "alertasani_session_v2";
 
   let map = null;
   let mapReady = false;
@@ -12,27 +11,58 @@
   let wantsToReport = false;
   let mapMarkers = [];
   let toastTimer = null;
+  let categoriasBanco = [];
+  let pontosCarregados = [];
 
-  const $ = (selector) => document.querySelector(selector);
-  const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+  const $ = selector => document.querySelector(selector);
+  const $$ = selector => Array.from(document.querySelectorAll(selector));
 
-  function readJSON(key, fallback) {
+  function saveSession(session) {
+    localStorage.setItem(STORAGE_SESSION, JSON.stringify(session));
+  }
+
+  function getSession() {
     try {
-      const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : fallback;
+      return JSON.parse(localStorage.getItem(STORAGE_SESSION));
     } catch {
-      return fallback;
+      return null;
     }
   }
 
-  function saveJSON(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-
   function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, char => ({
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[char]));
+  }
+
+  async function api(endpoint, options = {}) {
+    const session = getSession();
+
+    const headers = {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    };
+
+    if (session?.token) {
+      headers.Authorization = `Bearer ${session.token}`;
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      if (response.status === 401 && session?.token) {
+        localStorage.removeItem(STORAGE_SESSION);
+        updateAuthUI();
+      }
+      throw new Error(data.erro || "Erro ao comunicar com o servidor.");
+    }
+
+    return data;
   }
 
   function showToast(message) {
@@ -52,6 +82,7 @@
   }
 
   function closeModal(modal) {
+    if (!modal) return;
     modal.classList.remove("open");
     modal.setAttribute("aria-hidden", "true");
     if (!$(".modal.open")) document.body.style.overflow = "";
@@ -93,10 +124,10 @@
   });
 
   ["#hero-report", "#header-report", "#bottom-report"].forEach(selector => {
-    $(selector).addEventListener("click", () => startReportFlow());
+    $(selector)?.addEventListener("click", startReportFlow);
   });
 
-  $("#map-add-button").addEventListener("click", () => startReportFlow());
+  $("#map-add-button")?.addEventListener("click", startReportFlow);
 
   function startReportFlow() {
     if (!getSession()) {
@@ -105,32 +136,28 @@
       showToast("Entre ou crie uma conta para registrar um ponto.");
       return;
     }
+
     goToSection("mapa");
-    showToast("Agora clique no local desejado do mapa para adicionar o ponto.");
+    showToast("Clique no local desejado do mapa para adicionar o ponto.");
   }
 
   function continueReportFlow() {
     if (!wantsToReport || !getSession()) return;
     wantsToReport = false;
     goToSection("mapa");
-    showToast("Agora clique no local desejado do mapa para adicionar o ponto.");
+    showToast("Clique no local desejado do mapa para adicionar o ponto.");
   }
 
-  // Auth de demonstração: os dados ficam somente neste navegador.
-  function getUsers() {
-    return readJSON(STORAGE_USERS, []);
-  }
-
-  function getSession() {
-    return readJSON(STORAGE_SESSION, null);
-  }
+  // AUTENTICAÇÃO COM O BANCO DE DADOS
 
   function updateAuthUI() {
     const session = getSession();
+    const nome = session?.usuario?.nome;
+
     $("#open-login").hidden = Boolean(session);
     $("#logout-button").hidden = !session;
     $("#user-label").hidden = !session;
-    $("#user-label").textContent = session ? `Olá, ${session.name}` : "";
+    $("#user-label").textContent = session ? `Olá, ${nome}` : "";
   }
 
   function setAuthFeedback(message, success = false) {
@@ -147,14 +174,20 @@
 
   function setAuthMode(mode) {
     const login = mode === "login";
+
     $("#login-form").hidden = !login;
     $("#register-form").hidden = login;
     $("#tab-login").classList.toggle("selected", login);
     $("#tab-register").classList.toggle("selected", !login);
-    $("#auth-title").textContent = login ? "Entre na sua conta" : "Crie sua conta";
+
+    $("#auth-title").textContent = login
+      ? "Entre na sua conta"
+      : "Crie sua conta";
+
     $("#auth-description").textContent = login
       ? "Acesse para registrar e organizar suas ocorrências."
       : "Preencha os dados para criar uma conta.";
+
     setAuthFeedback("");
   }
 
@@ -162,79 +195,59 @@
   $("#tab-login").addEventListener("click", () => setAuthMode("login"));
   $("#tab-register").addEventListener("click", () => setAuthMode("register"));
 
-  async function hashPassword(password, saltHex) {
-    if (!window.crypto?.subtle) {
-      throw new Error("Abra o projeto em localhost ou HTTPS para usar o login.");
-    }
-    const encoder = new TextEncoder();
-    const salt = saltHex
-      ? Uint8Array.from(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
-      : window.crypto.getRandomValues(new Uint8Array(16));
-
-    const key = await crypto.subtle.importKey(
-      "raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]
-    );
-    const bits = await crypto.subtle.deriveBits(
-      { name: "PBKDF2", salt, iterations: 120000, hash: "SHA-256" },
-      key, 256
-    );
-    const hash = Array.from(new Uint8Array(bits))
-      .map(byte => byte.toString(16).padStart(2, "0")).join("");
-    const saltString = Array.from(salt)
-      .map(byte => byte.toString(16).padStart(2, "0")).join("");
-    return { hash, salt: saltString };
-  }
-
   $("#register-form").addEventListener("submit", async event => {
     event.preventDefault();
-    const name = $("#register-name").value.trim();
+
+    const nome = $("#register-name").value.trim();
     const email = $("#register-email").value.trim().toLowerCase();
-    const password = $("#register-password").value;
+    const senha = $("#register-password").value;
 
-    if (name.length < 2) return setAuthFeedback("Digite seu nome.");
-    if (password.length < 8) return setAuthFeedback("A senha precisa ter pelo menos 8 caracteres.");
-
-    const users = getUsers();
-    if (users.some(user => user.email === email)) {
-      return setAuthFeedback("Este e-mail já está cadastrado neste navegador. Faça login.");
+    if (nome.length < 2) return setAuthFeedback("Digite seu nome.");
+    if (senha.length < 8) {
+      return setAuthFeedback("A senha precisa ter pelo menos 8 caracteres.");
     }
 
     try {
-      const credentials = await hashPassword(password);
-      users.push({ name, email, passwordHash: credentials.hash, salt: credentials.salt });
-      saveJSON(STORAGE_USERS, users);
-      saveJSON(STORAGE_SESSION, { name, email });
-      updateAuthUI();
-      closeModal($("#auth-modal"));
+      await api("/usuarios", {
+        method: "POST",
+        body: JSON.stringify({ nome, email, senha })
+      });
+
+      setAuthFeedback("Conta criada! Agora entre com seu e-mail e senha.", true);
       $("#register-form").reset();
-      showToast("Conta criada com sucesso!");
-      continueReportFlow();
+      setAuthMode("login");
+      $("#login-email").value = email;
     } catch (error) {
-      setAuthFeedback(error.message || "Não foi possível criar a conta.");
+      setAuthFeedback(error.message);
     }
   });
 
   $("#login-form").addEventListener("submit", async event => {
     event.preventDefault();
-    const email = $("#login-email").value.trim().toLowerCase();
-    const password = $("#login-password").value;
-    const user = getUsers().find(item => item.email === email);
 
-    if (!user) return setAuthFeedback("Conta não encontrada neste navegador. Crie uma conta primeiro.");
+    const email = $("#login-email").value.trim().toLowerCase();
+    const senha = $("#login-password").value;
 
     try {
-      const credentials = await hashPassword(password, user.salt);
-      if (credentials.hash !== user.passwordHash) {
-        return setAuthFeedback("E-mail ou senha incorretos.");
-      }
-      saveJSON(STORAGE_SESSION, { name: user.name, email: user.email });
+      const data = await api("/login", {
+        method: "POST",
+        body: JSON.stringify({ email, senha })
+      });
+
+      saveSession({
+        token: data.token,
+        usuario: data.usuario
+      });
+
       updateAuthUI();
       closeModal($("#auth-modal"));
       $("#login-form").reset();
-      showToast(`Bem-vindo(a), ${user.name}!`);
+
+      showToast(`Bem-vindo(a), ${data.usuario.nome}!`);
       continueReportFlow();
+      await carregarOcorrencias();
     } catch (error) {
-      setAuthFeedback(error.message || "Não foi possível entrar.");
+      setAuthFeedback(error.message);
     }
   });
 
@@ -244,7 +257,40 @@
     showToast("Você saiu da conta.");
   });
 
-  // Google Maps
+  // CATEGORIAS DO BANCO
+
+  async function carregarCategorias() {
+    try {
+      categoriasBanco = await api("/categorias");
+    } catch (error) {
+      console.error("Erro ao carregar categorias:", error);
+    }
+  }
+
+  function encontrarCategoriaId(nome) {
+    const texto = String(nome || "").toLowerCase();
+
+    let categoria;
+
+    if (texto.includes("água") || texto.includes("agua")) {
+      categoria = categoriasBanco.find(c => c.nome === "Abastecimento de água");
+    } else if (texto.includes("lixo") || texto.includes("resíduo")) {
+      categoria = categoriasBanco.find(c => c.nome === "Lixo e resíduos");
+    } else if (texto.includes("drenagem") || texto.includes("bueiro")) {
+      categoria = categoriasBanco.find(c => c.nome === "Drenagem e bueiros");
+    } else if (texto.includes("alagamento")) {
+      categoria = categoriasBanco.find(c => c.nome === "Alagamento");
+    } else if (texto.includes("esgoto")) {
+      categoria = categoriasBanco.find(c => c.nome === "Esgoto");
+    } else {
+      categoria = categoriasBanco.find(c => c.nome === "Outro");
+    }
+
+    return categoria?.id || null;
+  }
+
+  // GOOGLE MAPS
+
   function showMapMessage(message) {
     const box = $("#map-message");
     box.textContent = message;
@@ -257,8 +303,9 @@
 
   function loadGoogleMaps() {
     const key = window.ALERTASANI_CONFIG?.googleMapsApiKey;
+
     if (!key || key === "COLE_SUA_CHAVE_DO_GOOGLE_MAPS_AQUI") {
-      showMapMessage("Para ativar o mapa interativo do Google, adicione sua chave em js/config.js. Veja as instruções no README.");
+      showMapMessage("Adicione sua chave do Google Maps em js/config.js para ativar o mapa.");
       return;
     }
 
@@ -267,17 +314,25 @@
       return;
     }
 
+    if ($("#google-maps-script")) return;
+
     window.initAlertaSaniMap = initMap;
+
     const script = document.createElement("script");
+    script.id = "google-maps-script";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=initAlertaSaniMap&language=pt-BR&region=BR`;
     script.async = true;
     script.defer = true;
-    script.onerror = () => showMapMessage("Não foi possível carregar o Google Maps. Confira a chave, as APIs ativadas e a configuração de faturamento.");
+    script.onerror = () => showMapMessage(
+      "Não foi possível carregar o Google Maps. Confira a chave e as configurações da API."
+    );
+
     document.head.appendChild(script);
   }
 
   function initMap() {
     if (mapReady || !window.google?.maps) return;
+
     map = new google.maps.Map($("#google-map"), {
       center: TL_CENTER,
       zoom: 12,
@@ -287,6 +342,7 @@
       clickableIcons: false,
       mapTypeId: "roadmap"
     });
+
     mapReady = true;
     hideMapMessage();
 
@@ -296,37 +352,49 @@
         showToast("Entre para adicionar um ponto ao mapa.");
         return;
       }
+
       pendingLocation = {
         lat: event.latLng.lat(),
         lng: event.latLng.lng()
       };
+
       updateSelectedLocationText();
       openModal("report-modal");
     });
 
-    renderPoints();
+    carregarOcorrencias();
   }
 
   function updateSelectedLocationText() {
     const label = $("#selected-location");
+
     if (!pendingLocation) {
       label.textContent = "Nenhum local selecionado. Clique em um ponto do mapa para escolher.";
       return;
     }
-    label.textContent = `Local selecionado: ${pendingLocation.lat.toFixed(5)}, ${pendingLocation.lng.toFixed(5)}`;
+
+    label.textContent =
+      `Local selecionado: ${pendingLocation.lat.toFixed(5)}, ${pendingLocation.lng.toFixed(5)}`;
   }
 
-  function getPoints() {
-    return readJSON(STORAGE_POINTS, []);
-  }
+  // OCORRÊNCIAS DO BANCO
 
   function categoryColor(category) {
-    return {
-      "Água e esgoto": "#f73100ff",
-      "Lixo e resíduos": "#ff9900ff",
-      "Drenagem": "#03c26fff",
-      "Outros": "#003ec4ff"
-    }[category] || "#6d83b4";
+    const nome = String(category || "").toLowerCase();
+
+    if (nome.includes("água") || nome.includes("agua") || nome.includes("esgoto")) {
+      return "#f73100ff";
+    }
+
+    if (nome.includes("lixo") || nome.includes("resíduo")) {
+      return "#ff9900ff";
+    }
+
+    if (nome.includes("drenagem") || nome.includes("alagamento")) {
+      return "#03c26fff";
+    }
+
+    return "#003ec4ff";
   }
 
   function clearMarkers() {
@@ -334,12 +402,34 @@
     mapMarkers = [];
   }
 
+  async function carregarOcorrencias() {
+    try {
+      const points = await api("/ocorrencias");
+
+      pontosCarregados = points.map(point => ({
+        id: point.id,
+        title: point.titulo,
+        category: point.categoria || "Outro",
+        description: point.descricao,
+        lat: Number(point.latitude),
+        lng: Number(point.longitude),
+        createdAt: point.criado_em,
+        status: point.status
+      }));
+
+      renderPoints();
+    } catch (error) {
+      console.error("Erro ao carregar ocorrências:", error);
+      showToast("Não foi possível carregar os pontos do banco.");
+    }
+  }
+
   function renderPoints() {
     if (!mapReady) return;
-    clearMarkers();
-    const points = getPoints();
 
-    points.forEach(point => {
+    clearMarkers();
+
+    pontosCarregados.forEach(point => {
       const marker = new google.maps.Marker({
         position: { lat: point.lat, lng: point.lng },
         map,
@@ -359,20 +449,26 @@
           <strong>${escapeHTML(point.title)}</strong>
           <p style="margin:6px 0;color:#176b5b;font-size:12px">${escapeHTML(point.category)}</p>
           <p style="margin:0;font-size:12px">${escapeHTML(point.description)}</p>
+          <p style="margin:6px 0 0;font-size:11px">Status: ${escapeHTML(point.status)}</p>
         </div>`
       });
 
       marker.addListener("click", () => info.open({ anchor: marker, map }));
-      mapMarkers.push(marker);
+
+      mapMarkers.push({ id: point.id, marker });
     });
 
-    renderOccurrenceList(points);
-    $("#points-count").textContent = `${points.length} ${points.length === 1 ? "ponto" : "pontos"} no mapa`;
-    $("#side-count").textContent = points.length;
+    renderOccurrenceList(pontosCarregados);
+
+    $("#points-count").textContent =
+      `${pontosCarregados.length} ${pontosCarregados.length === 1 ? "ponto" : "pontos"} no mapa`;
+
+    $("#side-count").textContent = pontosCarregados.length;
   }
 
   function renderOccurrenceList(points) {
     const list = $("#occurrence-list");
+
     if (!points.length) {
       list.innerHTML = `<div class="empty-list">
         <span class="empty-symbol">⌖</span>
@@ -383,75 +479,115 @@
     }
 
     list.innerHTML = "";
-    [...points].reverse().forEach(point => {
+
+    [...points].forEach(point => {
       const item = document.createElement("button");
       item.type = "button";
       item.className = "occurrence-item";
+
       item.innerHTML = `<span class="category-tag">${escapeHTML(point.category)}</span>
         <strong>${escapeHTML(point.title)}</strong>
-        <span>${new Date(point.createdAt).toLocaleDateString("pt-BR")}</span>`;
+        <span>${point.createdAt ? new Date(point.createdAt.replace(" ", "T") + (point.createdAt.includes("Z") ? "" : "Z")).toLocaleDateString("pt-BR") : ""}</span>`;
+
       item.addEventListener("click", () => {
         map.panTo({ lat: point.lat, lng: point.lng });
         map.setZoom(16);
-        const marker = mapMarkers.find(m => m.getTitle() === point.title);
-        if (marker) google.maps.event.trigger(marker, "click");
+
+        const encontrado = mapMarkers.find(m => m.id === point.id);
+        if (encontrado) {
+          google.maps.event.trigger(encontrado.marker, "click");
+        }
       });
+
       list.appendChild(item);
     });
   }
 
-  $("#report-form").addEventListener("submit", event => {
+  // ENVIO DE NOVA OCORRÊNCIA
+
+  $("#report-form").addEventListener("submit", async event => {
     event.preventDefault();
+
     if (!getSession()) {
       closeModal($("#report-modal"));
       openAuth("login");
       return;
     }
+
     if (!pendingLocation) {
-      showToast("Clique no mapa para selecionar o local da ocorrência.");
+      showToast("Clique no mapa para selecionar o local.");
       return;
     }
 
-    const point = {
-      id: window.crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()),
-      title: $("#report-title-input").value.trim(),
-      category: $("#report-category").value,
-      description: $("#report-description").value.trim(),
-      lat: pendingLocation.lat,
-      lng: pendingLocation.lng,
-      createdAt: new Date().toISOString()
+    const titulo = $("#report-title-input").value.trim();
+    const descricao = $("#report-description").value.trim();
+    const categoria = $("#report-category").value;
+
+    if (!titulo || !descricao) {
+      showToast("Preencha o título e a descrição.");
+      return;
+    }
+
+    const dados = {
+      categoria_id: encontrarCategoriaId(categoria),
+      titulo,
+      descricao,
+      endereco: "Localização marcada no mapa",
+      bairro: null,
+      latitude: pendingLocation.lat,
+      longitude: pendingLocation.lng
     };
 
-    const points = getPoints();
-    points.push(point);
-    saveJSON(STORAGE_POINTS, points);
+    try {
+      await api("/ocorrencias", {
+        method: "POST",
+        body: JSON.stringify(dados)
+      });
 
-    $("#report-form").reset();
-    pendingLocation = null;
-    updateSelectedLocationText();
-    closeModal($("#report-modal"));
+      const local = { ...pendingLocation };
 
-    if (mapReady) {
-      renderPoints();
-      map.panTo({ lat: point.lat, lng: point.lng });
+      $("#report-form").reset();
+      pendingLocation = null;
+      updateSelectedLocationText();
+      closeModal($("#report-modal"));
+
+      await carregarOcorrencias();
+
+      map.panTo(local);
       map.setZoom(15);
+
+      showToast("Ocorrência salva no banco de dados!");
+    } catch (error) {
+      showToast(error.message || "Não foi possível salvar a ocorrência.");
     }
-    showToast("Ponto adicionado ao mapa neste navegador.");
   });
 
-  // Se a pessoa entrar na seção do mapa, tenta carregar a API.
+  // CARREGAMENTO INICIAL
+
   const mapObserver = new IntersectionObserver(entries => {
-    if (entries.some(entry => entry.isIntersecting)) loadGoogleMaps();
+    if (entries.some(entry => entry.isIntersecting)) {
+      loadGoogleMaps();
+    }
   }, { threshold: 0.1 });
+
   mapObserver.observe($("#mapa"));
 
-  // Menu pequeno para telas estreitas.
   $("#mobile-menu").addEventListener("click", () => {
     const nav = $(".main-nav");
     const expanded = $("#mobile-menu").getAttribute("aria-expanded") === "true";
+
     $("#mobile-menu").setAttribute("aria-expanded", String(!expanded));
     nav.classList.toggle("mobile-open", !expanded);
   });
 
-  updateAuthUI();
+  async function iniciarAplicacao() {
+    updateAuthUI();
+    await carregarCategorias();
+
+    if (getSession()) {
+      await carregarOcorrencias();
+    }
+  }
+
+  iniciarAplicacao();
 })();
